@@ -16,9 +16,10 @@ func GetExposableWebhookIndex(webhooks *[]structures.Webhook, webhook structures
 
 // GetWebhookIndex gets the index of a specific webhook in array
 func GetWebhookIndex(webhooks *[]structures.Webhook, webhook structures.Webhook) int {
-	return GetExposableWebhookIndex(webhooks, structures.ExposableWebhook {
-		EngineClass150: webhook.EngineClass150,
-		ID: webhook.ID,
-		Server: webhook.Server
-	})
+	for i, el := range *webhooks {
+		if el.ID == webhook.ID && el.Server == webhook.Server && el.Token == webhook.Token {
+			return i
+		}
+	}
+	return -1
 }
