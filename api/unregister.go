@@ -5,6 +5,6 @@ import (
 )
 
 // Unregister is used to delete a webhook
-func Unregister(webhooks *[]structures.Webhook) {
+func Unregister(w http.ResponseWriter, r *http.Request, webhooks *[]structures.Webhook) {
 
 }

@@ -5,6 +5,6 @@ import (
 )
 
 // Register is used to register a new webhook
-func Register(webhooks *[]structures.Webhook) {
+func Register(w http.ResponseWriter, r *http.Request, webhooks *[]structures.Webhook) {
 
 }
