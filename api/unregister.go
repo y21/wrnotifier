@@ -35,16 +35,6 @@ func Unregister(w http.ResponseWriter, r *http.Request, webhooks *[]structures.W
 		*sync = false
 	}
 
-	/*for i, el := range *webhooks {
-		if el.ID == params["id"] && el.Token == params["token"] {
-			(*webhooks)[len(*webhooks)-1], (*webhooks)[i] = (*webhooks)[i], (*webhooks)[len(*webhooks)-1]
-			*webhooks = (*webhooks)[:len(*webhooks)-1]
-			found = true
-			*sync = false
-			break
-		}
-	}*/
-
 	w.Header().Set("Content-Type", "application/json")
 	fmt.Fprintf(w, "{\"status\": %d}", stateToInt(found))
 }
