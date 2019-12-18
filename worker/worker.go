@@ -2,16 +2,19 @@ package worker
 
 import (
 	"encoding/json"
-	"io/ioutil"
-	"time"
 	"fmt"
+	"io/ioutil"
 	"os"
+	"time"
 
 	"github.com/y21/wrnotifier-go/structures"
 )
 
-func work(webhooks *[]structures.Webhook) {
+// API is used to fetch recent world records
+const API string = "http://tt.chadsoft.co.uk/index.json"
 
+func work(webhooks *[]structures.Webhook) {
+	// TODO
 }
 
 func updateLocalCopy(webhooks *[]structures.Webhook, sync *bool) {
