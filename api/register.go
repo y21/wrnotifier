@@ -10,14 +10,15 @@ import (
 )
 
 // Register is used to register a new webhook
-func Register(w http.ResponseWriter, r *http.Request, webhooks *[]structures.Webhook) {
+func Register(w http.ResponseWriter, r *http.Request, webhooks *[]structures.Webhook, sync *bool) {
 	params := mux.Vars(r)
 	*webhooks = append(*webhooks, structures.Webhook{
 		EngineClass150: false,
 		ID:             params["id"],
-		Server:         "",
+		Server:         "", // todo: register server ID
 		Token:          params["token"],
 	})
+	*sync = false
 
 	w.Header().Set("Content-Type", "application/json")
 	fmt.Fprintf(w, "{\"status\":%d}", 200)

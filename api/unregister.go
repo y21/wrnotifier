@@ -6,6 +6,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/y21/wrnotifier-go/structures"
+	"github.com/y21/wrnotifier-go/utils"
 )
 
 func stateToInt(state bool) int {
@@ -16,17 +17,33 @@ func stateToInt(state bool) int {
 }
 
 // Unregister is used to delete a webhook
-func Unregister(w http.ResponseWriter, r *http.Request, webhooks *[]structures.Webhook) {
+func Unregister(w http.ResponseWriter, r *http.Request, webhooks *[]structures.Webhook, sync *bool) {
 	params := mux.Vars(r)
 	found := false
 
-	for i, el := range *webhooks {
+	index := utils.GetWebhookIndex(webhooks, structures.Webhook{
+		EngineClass150: false,
+		ID: params["id"],
+		Server: "",
+		Token: params["token"],
+	})
+
+	if index > -1 {
+		(*webhooks)[len(*webhooks)-1], (*webhooks)[index] = (*webhooks)[index], (*webhooks)[len(*webhooks)-1]
+		*webhooks = (*webhooks)[:len(*webhooks)-1]
+		found = true
+		*sync = false
+	}
+
+	/*for i, el := range *webhooks {
 		if el.ID == params["id"] && el.Token == params["token"] {
 			(*webhooks)[len(*webhooks)-1], (*webhooks)[i] = (*webhooks)[i], (*webhooks)[len(*webhooks)-1]
 			*webhooks = (*webhooks)[:len(*webhooks)-1]
 			found = true
+			*sync = false
+			break
 		}
-	}
+	}*/
 
 	w.Header().Set("Content-Type", "application/json")
 	fmt.Fprintf(w, "{\"status\": %d}", stateToInt(found))
