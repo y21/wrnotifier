@@ -16,6 +16,7 @@ import (
 const version string = "1.1.0"
 
 var webhooks []structures.Webhook
+var sync bool = true
 
 func handleError(err error) {
 	if err != nil {
@@ -36,7 +37,7 @@ func main() {
 	json.Unmarshal(bytes, &webhooks)
 
 	// Start worker
-	go worker.Loop(&webhooks)
+	go worker.Loop(&webhooks, &sync)
 
 	// Start webserver
 	fmt.Println("Starting webserver...")
@@ -51,11 +52,11 @@ func main() {
 	}).Methods("GET")
 
 	router.HandleFunc("/register/{id}/{token}", func(w http.ResponseWriter, r *http.Request) {
-		api.Register(w, r, &webhooks)
+		api.Register(w, r, &webhooks, &sync)
 	}).Methods("POST")
 
 	router.HandleFunc("/unregister/{id}/{token}", func(w http.ResponseWriter, r *http.Request) {
-		api.Unregister(w, r, &webhooks)
+		api.Unregister(w, r, &webhooks, &sync)
 	}).Methods("POST")
 
 	http.ListenAndServe(":3000", router)
