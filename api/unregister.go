@@ -1,6 +1,8 @@
 package api
 
 import (
+	"net/http"
+
 	"github.com/y21/wrnotifier-go/structures"
 )
 
