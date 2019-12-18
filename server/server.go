@@ -8,6 +8,7 @@ import (
 	"os"
 
 	"github.com/gorilla/mux"
+	"github.com/y21/wrnotifier-go/api"
 	"github.com/y21/wrnotifier-go/structures"
 	"github.com/y21/wrnotifier-go/worker"
 )
@@ -44,6 +45,18 @@ func main() {
 	router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "wr notifier version %s", version)
 	}).Methods("GET")
+
+	router.HandleFunc("/webhooks", func(w http.ResponseWriter, r *http.Request) {
+		api.Fetch(w, r, &webhooks)
+	}).Methods("GET")
+
+	router.HandleFunc("/register/{id}/{token}", func(w http.ResponseWriter, r *http.Request) {
+		api.Register(w, r, &webhooks)
+	}).Methods("POST")
+
+	router.HandleFunc("/unregister/{id}/{token}", func(w http.ResponseWriter, r *http.Request) {
+		api.Unregister(w, r, &webhooks)
+	}).Methods("POST")
 
 	http.ListenAndServe(":3000", router)
 }
