@@ -8,7 +8,7 @@ import (
 )
 
 // Fetch is used to get ID and Server of webhook
-func Fetch(w http.ResponseWriter, r *http.Request, webhooks *[]structures.Webhook) {
+func Fetch(w http.ResponseWriter, r *http.Request, webhooks *[]structures.Webhook, _ *bool) {
 	data := make([]structures.ExposableWebhook, len(*webhooks))
 	for i, el := range *webhooks {
 		data[i] = structures.ExposableWebhook {
