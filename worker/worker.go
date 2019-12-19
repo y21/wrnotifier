@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"time"
 
@@ -13,7 +14,28 @@ import (
 // API is used to fetch recent world records
 const API string = "http://tt.chadsoft.co.uk/index.json"
 
+func executeWebhook(id string, token string) {
+
+}
+
 func work(webhooks *[]structures.Webhook) {
+	resp, err := http.Get(API)
+	if err != nil {
+		fmt.Printf("Could not fetch website: %s", err)
+		return
+	}
+	defer resp.Body.Close()
+	var data structures.Response
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Printf("Error while reading body: %s", err)
+		return
+	}
+	err = json.Unmarshal(body[3:], &data)
+	if err != nil {
+		fmt.Printf("Error while parsing JSON: %s", err)
+		return
+	}
 	// TODO
 }
 
