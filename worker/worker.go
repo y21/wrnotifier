@@ -14,11 +14,14 @@ import (
 // API is used to fetch recent world records
 const API string = "http://tt.chadsoft.co.uk/index.json"
 
-func executeWebhook(id string, token string) {
+var recordCache []structures.RecentRecord
+
+func executeWebhook(id string, token string, embed structures.Embed) {
 
 }
 
 func work(webhooks *[]structures.Webhook) {
+	// Send request and process response
 	resp, err := http.Get(API)
 	if err != nil {
 		fmt.Printf("Could not fetch website: %s", err)
@@ -31,12 +34,48 @@ func work(webhooks *[]structures.Webhook) {
 		fmt.Printf("Error while reading body: %s", err)
 		return
 	}
-	err = json.Unmarshal(body[3:], &data)
+	err = json.Unmarshal(body[3:], &data) // Slice 3 because of Byte Order Mark
 	if err != nil {
 		fmt.Printf("Error while parsing JSON: %s", err)
 		return
 	}
-	// TODO
+
+	// First iteration => No cache
+	if len(recordCache) == 0 {
+		recordCache = data.RecentRecords
+		return
+	}
+
+	if data.RecentRecords[0].Hash != recordCache[0].Hash { // New WR achieved
+		for _, webhook := range *webhooks {
+			if webhook.EngineClass150 && data.RecentRecords[0].Two00Cc {
+				continue
+			}
+
+			var engineClass string
+			if data.RecentRecords[0].Two00Cc {
+				engineClass = "200cc"
+			} else {
+				engineClass = "150cc"
+			}
+			var fields []structures.EmbedField
+			fields = append(fields, structures.EmbedField{
+				Name:  "Track",
+				Value: data.RecentRecords[0].TrackName + " " + data.RecentRecords[0].TrackVersion,
+			})
+			fields = append(fields, structures.EmbedField{
+				Name:  "Engine class",
+				Value: engineClass,
+			})
+
+			executeWebhook(webhook.ID, webhook.Token, structures.Embed{
+				Color:  0xae60,
+				Title:  "New World Record",
+				Fields: fields,
+			})
+			recordCache = data.RecentRecords
+		}
+	}
 }
 
 func updateLocalCopy(webhooks *[]structures.Webhook, sync *bool) {
