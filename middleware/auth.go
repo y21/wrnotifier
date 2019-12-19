@@ -8,7 +8,7 @@ import (
 )
 
 // Authorize is used as a middleware function to check whether request is api call and if user is authorized
-func Authorize(callback func(http.ResponseWriter, *http.Request, *[]structures.Webhook), webhooks *[]structures.Webhook, authKey string) http.HandlerFunc {
+func Authorize(callback func(http.ResponseWriter, *http.Request, *[]structures.Webhook, *bool), webhooks *[]structures.Webhook, authKey string, sync *bool) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		keys, status := r.URL.Query()["key"]
@@ -21,7 +21,7 @@ func Authorize(callback func(http.ResponseWriter, *http.Request, *[]structures.W
 				w.WriteHeader(http.StatusForbidden)
 				fmt.Fprintf(w, "{\"message\": \"%s\"", "Provided key is not correct")
 			} else {
-				callback(w, r, webhooks)
+				callback(w, r, webhooks, sync)
 			}
 		}
 	}
