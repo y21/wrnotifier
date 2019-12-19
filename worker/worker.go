@@ -1,6 +1,7 @@
 package worker
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -16,8 +17,23 @@ const API string = "http://tt.chadsoft.co.uk/index.json"
 
 var recordCache []structures.RecentRecord
 
-func executeWebhook(id string, token string, embed structures.Embed) {
-
+func executeWebhook(id string, token string, message structures.Message) {
+	data, err := json.Marshal(message)
+	if err != nil {
+		fmt.Printf("Error occurred while executing webhook: %s", err)
+		return
+	}
+	buffer := bytes.NewBuffer(data)
+	fmt.Println(buffer)
+	resp, err := http.Post("https://discordapp.com/api/webhooks/"+id+"/"+token, "application/json", buffer)
+	if err != nil {
+		fmt.Printf("Error occurred while executing webhook: %s", err)
+		return
+	}
+	if resp.StatusCode == 401 || resp.StatusCode == 404 {
+		fmt.Println("webhook error")
+		// TODO: remove webhook
+	}
 }
 
 func work(webhooks *[]structures.Webhook) {
@@ -46,7 +62,7 @@ func work(webhooks *[]structures.Webhook) {
 		return
 	}
 
-	if data.RecentRecords[0].Hash != recordCache[0].Hash { // New WR achieved
+	if data.RecentRecords[0].Hash != recordCache[0].Hash || true { // New WR achieved
 		for _, webhook := range *webhooks {
 			if webhook.EngineClass150 && data.RecentRecords[0].Two00Cc {
 				continue
@@ -68,10 +84,14 @@ func work(webhooks *[]structures.Webhook) {
 				Value: engineClass,
 			})
 
-			executeWebhook(webhook.ID, webhook.Token, structures.Embed{
-				Color:  0xae60,
-				Title:  "New World Record",
-				Fields: fields,
+			executeWebhook(webhook.ID, webhook.Token, structures.Message{
+				Embeds: []structures.Embed{
+					{
+						Color:  0xae60,
+						Title:  "New World Record",
+						Fields: fields,
+					},
+				},
 			})
 			recordCache = data.RecentRecords
 		}
@@ -81,7 +101,7 @@ func work(webhooks *[]structures.Webhook) {
 func updateLocalCopy(webhooks *[]structures.Webhook, sync *bool) {
 	if !*sync {
 		fmt.Println("Updating file...")
-		bytes, err := json.MarshalIndent(*webhooks, "", " ")
+		bytes, err := json.MarshalIndent(*webhooks, "", "    ")
 		if err != nil {
 			fmt.Printf("An error occurred while trying to decode JSON: %s", err)
 			os.Exit(1)
