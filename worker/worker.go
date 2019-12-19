@@ -24,7 +24,6 @@ func executeWebhook(id string, token string, message structures.Message) {
 		return
 	}
 	buffer := bytes.NewBuffer(data)
-	fmt.Println(buffer)
 	resp, err := http.Post("https://discordapp.com/api/webhooks/"+id+"/"+token, "application/json", buffer)
 	if err != nil {
 		fmt.Printf("Error occurred while executing webhook: %s", err)
@@ -62,7 +61,7 @@ func work(webhooks *[]structures.Webhook) {
 		return
 	}
 
-	if data.RecentRecords[0].Hash != recordCache[0].Hash || true { // New WR achieved
+	if data.RecentRecords[0].Hash != recordCache[0].Hash { // New WR achieved
 		for _, webhook := range *webhooks {
 			if webhook.EngineClass150 && data.RecentRecords[0].Two00Cc {
 				continue
@@ -78,6 +77,13 @@ func work(webhooks *[]structures.Webhook) {
 			fields = append(fields, structures.EmbedField{
 				Name:  "Track",
 				Value: data.RecentRecords[0].TrackName + " " + data.RecentRecords[0].TrackVersion,
+			})
+			fields = append(fields, structures.EmbedField{
+				Name: "Ghost information",
+				Value: "Player: " + data.RecentRecords[0].Player +
+					"\nTime: " + data.RecentRecords[0].FinishTimeSimple +
+					"\nBest lap: " + data.RecentRecords[0].BestSplitSimple +
+					"\n[Ghost download](http://chadsoft.co.uk/time-trials/" + data.RecentRecords[0].Href + ")",
 			})
 			fields = append(fields, structures.EmbedField{
 				Name:  "Engine class",
