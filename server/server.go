@@ -9,12 +9,13 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/y21/wrnotifier-go/api"
+	"github.com/y21/wrnotifier-go/middleware"
 	"github.com/y21/wrnotifier-go/structures"
 	"github.com/y21/wrnotifier-go/worker"
-	"github.com/y21/wrnotifier-go/middleware"
 )
 
 const version string = "1.1.0"
+const authKey string = ""
 
 var webhooks []structures.Webhook
 var sync bool = true
@@ -47,16 +48,9 @@ func main() {
 	router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "wr notifier version %s", version)
 	}).Methods("GET")
-
-	router.HandleFunc("/webhooks", middleware.Authorize(api.Fetch, &webhooks)).Methods("GET")
-
-	router.HandleFunc("/register/{id}/{token}", func(w http.ResponseWriter, r *http.Request) {
-		api.Register(w, r, &webhooks, &sync)
-	}).Methods("POST")
-
-	router.HandleFunc("/unregister/{id}/{token}", func(w http.ResponseWriter, r *http.Request) {
-		api.Unregister(w, r, &webhooks, &sync)
-	}).Methods("POST")
+	router.HandleFunc("/webhooks", middleware.Authorize(api.Fetch, &webhooks, authKey, &sync)).Methods("GET")
+	router.HandleFunc("/register/{id}/{token}", middleware.Authorize(api.Register, &webhooks, authKey, &sync)).Methods("POST")
+	router.HandleFunc("/unregister/{id}/{token}", middleware.Authorize(api.Unregister, &webhooks, authKey, &sync)).Methods("POST")
 
 	http.ListenAndServe(":3000", router)
 }
