@@ -11,6 +11,7 @@ import (
 	"github.com/y21/wrnotifier-go/api"
 	"github.com/y21/wrnotifier-go/structures"
 	"github.com/y21/wrnotifier-go/worker"
+	"github.com/y21/wrnotifier-go/middleware"
 )
 
 const version string = "1.1.0"
@@ -47,9 +48,7 @@ func main() {
 		fmt.Fprintf(w, "wr notifier version %s", version)
 	}).Methods("GET")
 
-	router.HandleFunc("/webhooks", func(w http.ResponseWriter, r *http.Request) {
-		api.Fetch(w, r, &webhooks)
-	}).Methods("GET")
+	router.HandleFunc("/webhooks", middleware.Authorize(api.Fetch, &webhooks)).Methods("GET")
 
 	router.HandleFunc("/register/{id}/{token}", func(w http.ResponseWriter, r *http.Request) {
 		api.Register(w, r, &webhooks, &sync)
