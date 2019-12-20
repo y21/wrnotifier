@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"strconv"
 
 	"github.com/gorilla/mux"
 	"github.com/y21/wrnotifier-go/api"
@@ -19,6 +20,7 @@ const version string = "1.1.0"
 
 var authKey string
 var webhooksFilePath string
+var port int
 var webhooks []structures.Webhook
 var sync bool = true
 
@@ -33,6 +35,7 @@ func main() {
 	// Parse flags
 	flag.StringVar(&authKey, "auth", "", "The authorization key")
 	flag.StringVar(&webhooksFilePath, "file", "webhooks.json", "File path to JSON file where webhooks are stored")
+	flag.IntVar(&port, "port", 3000, "The port the webserver should listen to")
 	flag.Parse()
 
 	// Validate authKey flag
@@ -64,6 +67,9 @@ func main() {
 	router.HandleFunc("/register/{id}/{token}", middleware.Authorize(api.Register, &webhooks, authKey, &sync)).Methods("POST")
 	router.HandleFunc("/unregister/{id}/{token}", middleware.Authorize(api.Unregister, &webhooks, authKey, &sync)).Methods("POST")
 
-	fmt.Printf("Webserver started, auth key: %s\n", authKey)
-	http.ListenAndServe(":3000", router)
+	fmt.Printf("Webserver started. Auth key: %s | Port: %d\n", authKey, port)
+	err = http.ListenAndServe(":"+strconv.Itoa(port), router)
+	if err != nil {
+		fmt.Printf("cannot start server: %v", err)
+	}
 }
