@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -15,7 +16,8 @@ import (
 )
 
 const version string = "1.1.0"
-const authKey string = ""
+
+var authKey string
 
 var webhooks []structures.Webhook
 var sync bool = true
@@ -29,6 +31,12 @@ func handleError(err error) {
 
 func main() {
 	// Read file
+	flag.StringVar(&authKey, "auth", "", "The authorization key")
+	flag.Parse()
+	if authKey == "" {
+		fmt.Println("No authorization key provided. Please start process with auth flag as follows: -auth <key>")
+		os.Exit(1)
+	}
 	jsonFile, err := os.Open("webhooks.json")
 	handleError(err)
 	defer jsonFile.Close()
@@ -42,7 +50,6 @@ func main() {
 	go worker.Loop(&webhooks, &sync)
 
 	// Start webserver
-	fmt.Println("Starting webserver...")
 	router := mux.NewRouter()
 
 	router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
@@ -52,5 +59,6 @@ func main() {
 	router.HandleFunc("/register/{id}/{token}", middleware.Authorize(api.Register, &webhooks, authKey, &sync)).Methods("POST")
 	router.HandleFunc("/unregister/{id}/{token}", middleware.Authorize(api.Unregister, &webhooks, authKey, &sync)).Methods("POST")
 
+	fmt.Printf("Webserver started, auth key: %s", authKey)
 	http.ListenAndServe(":3000", router)
 }
