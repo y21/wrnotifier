@@ -58,7 +58,10 @@ impl Worker {
         let text = self
             .client
             .get(constants::TT_API)
-            // .header(reqwest::header::USER_AGENT, "")
+            .header(
+                reqwest::header::USER_AGENT,
+                "WR Notifier (https://github.com/y21/wrnotifier)",
+            )
             .send()
             .await?
             .error_for_status()?
