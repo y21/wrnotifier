@@ -112,14 +112,25 @@ impl Worker {
             }],
         };
 
-        self.client
-            .post(url)
-            .json(&data)
-            .send()
-            .await?
-            .error_for_status()
-            .map(|_| ())
+        self.client.post(url).json(&data).send().await.map(|_| ())
         // TODO: delete webhook if 401?
+    }
+
+    async fn handle_world_record(
+        &mut self,
+        record: &Record,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let webhooks = self.app.db.get_webhooks().await?;
+
+        for webhook in webhooks {
+            if webhook.no_200c != 0 && record.is_200cc {
+                continue;
+            }
+
+            self.execute_webhook(webhook, &record).await?;
+        }
+
+        Ok(())
     }
 
     async fn run_single(&mut self) -> Result<(), Box<dyn std::error::Error>> {
@@ -136,14 +147,8 @@ impl Worker {
         if let Some((old, new)) = first {
             if old.hash != new.hash {
                 // New world record
-                let webhooks = self.app.db.get_webhooks().await?;
-
-                for webhook in webhooks {
-                    if webhook.no_200c != 0 && new.is_200cc {
-                        continue;
-                    }
-
-                    self.execute_webhook(webhook, &new).await?;
+                if let Err(e) = self.handle_world_record(&new).await {
+                    println!("{:?}", e);
                 }
             }
         }
