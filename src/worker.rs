@@ -117,11 +117,6 @@ impl Worker {
 
     async fn run_single(&mut self) -> Result<(), Box<dyn std::error::Error>> {
         let records = self.get_recent_records().await?;
-        println!(
-            "Requested records ({}). First fetch? {}",
-            records.len(),
-            self.previous.is_none()
-        );
 
         if self.previous.is_none() {
             self.previous = Some(records);
@@ -133,7 +128,6 @@ impl Worker {
 
         if let Some((old, new)) = first {
             if old.hash != new.hash {
-                println!("Hash has changed! WR! {:?}", new);
                 // New world record
                 let webhooks = self.app.db.get_webhooks().await?;
 
