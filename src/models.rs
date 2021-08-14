@@ -28,6 +28,8 @@ pub struct Record {
     pub href: String,
     #[serde(rename = "200cc")]
     pub is_200cc: bool,
+    pub driver_id: u8,
+    pub vehicle_id: u8,
 }
 
 #[derive(Serialize, Debug, Clone)]

@@ -3,6 +3,7 @@ use crate::{
     models::{
         DatabaseWebhook, DiscordEmbed, DiscordEmbedField, DiscordMessage, IndexResponseBody, Record,
     },
+    util,
 };
 use reqwest::Client;
 use std::fmt::Display;
@@ -96,8 +97,11 @@ impl Worker {
                     DiscordEmbedField {
                         name: "Ghost information",
                         value: &format!(
-                            "Player: {}\nTime: {}",
-                            record.player, record.finish_time_simple
+                            "Player: {}\nTime: {}\nCharacter: {}\nVehicle: {}",
+                            record.player,
+                            record.finish_time_simple,
+                            util::driver_id_to_string(record.driver_id).unwrap_or("?"),
+                            util::vehicle_id_to_string(record.vehicle_id).unwrap_or("?"),
                         ),
                     },
                     DiscordEmbedField {

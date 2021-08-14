@@ -8,6 +8,7 @@ mod database;
 mod models;
 mod server;
 mod worker;
+mod util;
 
 use std::sync::Arc;
 
