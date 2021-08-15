@@ -129,6 +129,9 @@ impl Worker {
             }
 
             self.execute_webhook(webhook, &record).await?;
+
+            // let's wait a bit so we don't hammer the discord api
+            tokio::time::sleep(Duration::from_millis(500)).await;
         }
 
         Ok(())
