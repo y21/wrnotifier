@@ -97,11 +97,12 @@ impl Worker {
                     DiscordEmbedField {
                         name: "Ghost information",
                         value: &format!(
-                            "Player: {}\nTime: {}\nCharacter: {}\nVehicle: {}",
+                            "Player: {}\nTime: {}\nCharacter: {}\nVehicle: {}\n[Ghost download]({})",
                             record.player,
                             record.finish_time_simple,
                             util::driver_id_to_string(record.driver_id).unwrap_or("?"),
                             util::vehicle_id_to_string(record.vehicle_id).unwrap_or("?"),
+                            record.href
                         ),
                     },
                     DiscordEmbedField {
