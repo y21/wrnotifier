@@ -97,12 +97,13 @@ impl Worker {
                     DiscordEmbedField {
                         name: "Ghost information",
                         value: &format!(
-                            "Player: {}\nTime: {}\nBest lap: {}\nCharacter: {}\nVehicle: {}\n[Ghost download]({})",
+                            "Player: {}\nTime: {}\nBest lap: {}\nCharacter: {}\nVehicle: {}\n[Ghost download]({}{})",
                             record.player,
                             record.finish_time_simple,
                             record.best_split_simple,
                             util::driver_id_to_string(record.driver_id).unwrap_or("?"),
                             util::vehicle_id_to_string(record.vehicle_id).unwrap_or("?"),
+                            constants::TT_API_BASE,
                             record.href
                         ),
                     },
