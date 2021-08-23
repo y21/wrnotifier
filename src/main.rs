@@ -1,3 +1,4 @@
+use std::fs::File;
 use worker::Worker;
 
 use crate::app::App;
@@ -7,13 +8,16 @@ mod constants;
 mod database;
 mod models;
 mod server;
-mod worker;
 mod util;
+mod worker;
 
 use std::sync::Arc;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Create the database file if it doesn't exist
+    drop(File::create(constants::DATABASE_PATH_RAW));
+
     let port = std::env::var("WRNOTIFIER_PORT")
         .map(|v| v.parse::<u16>())
         .unwrap_or_else(|_| Ok(3000))?;

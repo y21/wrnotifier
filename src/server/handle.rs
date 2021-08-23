@@ -6,6 +6,7 @@ use crate::app::App;
 use super::routes;
 
 pub async fn handle(app: Arc<App>, port: u16, auth: Option<Box<str>>) {
+    eprintln!("Running on port: {}, auth enabled: {}", port, auth.is_some());
     let auth = auth.map(|x| Box::leak(x) as &'static str);
     let app_filter = warp::any().map(move || Arc::clone(&app));
 
