@@ -1,3 +1,5 @@
+use reqwest::Client;
+
 pub fn driver_id_to_string(id: u8) -> Option<&'static str> {
     match id {
         0 => Some("Mario"),
@@ -92,4 +94,25 @@ pub fn vehicle_id_to_string(id: u8) -> Option<&'static str> {
         0x23 => Some("Phantom"),
         _ => None,
     }
+}
+
+pub fn to_webhook_url(webhook_id: &str, webhook_token: &str) -> String {
+    format!(
+        "https://discordapp.com/api/webhooks/{}/{}",
+        webhook_id, webhook_token
+    )
+}
+
+pub async fn validate_webhook(
+    client: &Client,
+    webhook_id: &str,
+    webhook_token: &str,
+) -> Result<(), reqwest::Error> {
+    let url = to_webhook_url(webhook_id, webhook_token);
+    client
+        .get(&url)
+        .send()
+        .await?
+        .error_for_status()
+        .map(|_| ())
 }

@@ -80,10 +80,7 @@ impl Worker {
         webhook: DatabaseWebhook,
         record: &Record,
     ) -> Result<(), reqwest::Error> {
-        let url = format!(
-            "https://discordapp.com/api/webhooks/{}/{}",
-            webhook.id, webhook.token
-        );
+        let url = util::to_webhook_url(&webhook.id, &webhook.token);
 
         let data = DiscordMessage {
             embeds: &[DiscordEmbed {
