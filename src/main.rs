@@ -1,40 +1,86 @@
-use std::fs::File;
-use worker::Worker;
+use std::fs;
+use std::thread::sleep;
+use std::time::Duration;
 
-use crate::app::App;
+use anyhow::Context;
+use tracing::debug;
+use tracing::error;
 
-mod app;
-mod constants;
-mod database;
-mod models;
-mod server;
-mod util;
-mod worker;
+use crate::results::EngineClass;
+use crate::results::Results;
+use crate::webhook::WEBHOOKS;
+use crate::webhook::send_record_to_webhook;
 
-use std::sync::Arc;
+mod characters;
+mod results;
+mod vehicles;
+mod webhook;
 
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // Create the database file if it doesn't exist
-    drop(File::create(constants::DATABASE_PATH_RAW));
+const HOST: &str = match option_env!("TT_JSON_URL") {
+    Some(url) => url,
+    None => "https://tt.chadsoft.co.uk/index.json",
+};
 
-    let port = std::env::var("WRNOTIFIER_PORT")
-        .map(|v| v.parse::<u16>())
-        .unwrap_or_else(|_| Ok(3000))?;
+fn process() -> anyhow::Result<()> {
+    debug!("fetching tt data from {HOST}");
 
-    let authorization = std::env::var("WRNOTIFIER_AUTH")
-        .map(String::into_boxed_str)
-        .ok();
+    let response_text = ureq::get(HOST)
+        .header(
+            "User-Agent",
+            "wr-notifier (+https://github.com/y21/wrnotifier)",
+        )
+        .call()
+        .context("failed to fetch TT data from server")?
+        .body_mut()
+        .read_to_string()
+        .context("failed to read response body")?;
 
-    let app = Arc::new(App::new(constants::DATABASE_PATH).await?);
+    let response_text = response_text
+        .strip_prefix('\u{feff}')
+        .unwrap_or(&response_text); // Remove BOM if present
 
-    let worker = Worker::new(Arc::clone(&app));
+    let json =
+        serde_json::from_str::<Results>(response_text).context("failed to parse JSON response")?;
 
-    let worker_handle = tokio::spawn(worker.run());
-    let server_handle = tokio::spawn(server::handle(Arc::clone(&app), port, authorization));
+    if let Ok(last_ghost_hash) = fs::read_to_string("last.txt")
+        && let last_ghost_hash = last_ghost_hash.trim()
+        && let Some(last_seen_pos) = json
+            .recent_records
+            .iter()
+            .position(|entry| entry.hash == last_ghost_hash)
+    {
+        let new_ghosts = &json.recent_records[..last_seen_pos];
 
-    server_handle.await.expect("Server failed");
-    worker_handle.await.expect("Worker failed");
+        if !new_ghosts.is_empty() {
+            debug!("found new records: {new_ghosts:?}");
+        }
+
+        for webhook in &*WEBHOOKS {
+            for record in new_ghosts {
+                if !webhook.include_200cc && record.engine_class == EngineClass::E200 {
+                    continue;
+                }
+
+                send_record_to_webhook(&webhook.url, record)
+                    .context("failed to send record to webhook")?;
+            }
+        }
+    }
+
+    fs::write("last.txt", json.recent_records[0].hash)
+        .context("failed to write last ghost hash to file")?;
 
     Ok(())
+}
+
+fn main() -> anyhow::Result<()> {
+    tracing_subscriber::fmt::init();
+
+    loop {
+        if let Err(err) = process() {
+            error!("an error occurred: {err:?}");
+        }
+
+        sleep(Duration::from_secs(60));
+    }
 }
