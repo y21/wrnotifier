@@ -81,6 +81,6 @@ fn main() -> anyhow::Result<()> {
             error!("an error occurred: {err:?}");
         }
 
-        sleep(Duration::from_secs(60));
+        sleep(Duration::from_secs(60 * 5));
     }
 }
