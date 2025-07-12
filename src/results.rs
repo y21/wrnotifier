@@ -47,6 +47,7 @@ pub struct WrEntry<'a> {
     #[serde(rename = "vehicleId", deserialize_with = "deserialize_vehicle")]
     pub vehicle: &'a str,
     pub hash: &'a str,
+    pub href: &'a str,
 }
 
 #[derive(serde::Deserialize, Debug)]

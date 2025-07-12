@@ -9,17 +9,31 @@ use tracing::info;
 use crate::results::EngineClass;
 use crate::results::WrEntry;
 
+const TT_API_BASE: &str = "http://tt.chadsoft.co.uk";
+
 #[derive(Deserialize)]
 pub struct LocalWebhook {
     pub url: String,
-    pub include_200cc: bool,
+    #[serde(rename = "200cc")]
+    pub class_200cc: bool,
+    #[serde(rename = "150cc")]
+    pub class_150cc: bool,
 }
 
 pub static WEBHOOKS: LazyLock<Vec<LocalWebhook>> = LazyLock::new(|| {
-    serde_json::from_str(
+    let webhooks: Vec<LocalWebhook> = serde_json::from_str(
         &fs::read_to_string("webhooks.json").expect("Failed to read webhooks.json"),
     )
-    .expect("Failed to parse webhooks.json")
+    .expect("Failed to parse webhooks.json");
+
+    for webhook in &webhooks {
+        info!(
+            "Loaded webhook '{}', 200cc: {}, 150cc: {}",
+            webhook.url, webhook.class_200cc, webhook.class_150cc
+        );
+    }
+
+    webhooks
 });
 
 #[derive(Serialize)]
@@ -56,12 +70,14 @@ pub fn send_record_to_webhook(webhook: &str, record: &WrEntry) -> anyhow::Result
                     Field {
                         name: "Ghost information",
                         value: &format!(
-                            "Player: {}\nTime: {}\nBest lap: {}\nCharacter: {}\nVehicle: {}",
+                            "Player: {}\nTime: {}\nBest lap: {}\nCharacter: {}\nVehicle: {}\n[Ghost download]({}{})",
                             record.player,
                             record.finish_time_simple,
                             record.best_split_simple,
                             record.character,
-                            record.vehicle
+                            record.vehicle,
+                            TT_API_BASE,
+                            record.href
                         ),
                     },
                     Field {

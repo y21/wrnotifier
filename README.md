@@ -12,11 +12,12 @@ A small program that watches for CTGP World Records and posts them in Discord ch
 [
   {
     "url": "YOUR_DISCORD_WEBHOOK_URL",
-    "include_200cc": true
+    "200cc": true,
+    "150cc": true
   }
 ]
 ```
 
-4. Run the program with `cargo run -r`.
+4. Run the program with `cargo run -r`. Optionally you can enable more logging with `RUST_LOG=debug cargo run -r`.
 
 Every minute it will send a request to the CTGP Ghost DB and check for new world records. If it finds any, it will post them to the specified Discord webhooks.

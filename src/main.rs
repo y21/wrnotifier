@@ -57,7 +57,10 @@ fn process() -> anyhow::Result<()> {
 
         for webhook in &*WEBHOOKS {
             for record in new_ghosts {
-                if !webhook.include_200cc && record.engine_class == EngineClass::E200 {
+                if (record.engine_class == EngineClass::E200 && !webhook.class_200cc)
+                    || (record.engine_class == EngineClass::E150 && !webhook.class_150cc)
+                {
+                    // Webhook is not interested in this engine class
                     continue;
                 }
 
