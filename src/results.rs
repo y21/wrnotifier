@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 use serde::Deserialize;
 use serde::Deserializer;
 
@@ -37,7 +39,8 @@ fn deserialize_vehicle<'de, D: Deserializer<'de>>(de: D) -> Result<&'static str,
 #[serde(rename_all = "camelCase")]
 pub struct WrEntry<'a> {
     pub track_name: &'a str,
-    pub player: &'a str,
+    #[serde(borrow)]
+    pub player: Cow<'a, str>,
     #[serde(rename = "200cc", deserialize_with = "deserialize_engine_class")]
     pub engine_class: EngineClass,
     pub finish_time_simple: &'a str,
