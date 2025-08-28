@@ -5,6 +5,8 @@ use std::time::Duration;
 use anyhow::Context;
 use tracing::debug;
 use tracing::error;
+use ureq::Agent;
+use ureq::config::Config;
 
 use crate::results::EngineClass;
 use crate::results::Results;
@@ -21,14 +23,11 @@ const HOST: &str = match option_env!("TT_JSON_URL") {
     None => "https://tt.chadsoft.co.uk/index.json",
 };
 
-fn process() -> anyhow::Result<()> {
+fn process(agent: &Agent) -> anyhow::Result<()> {
     debug!("fetching tt data from {HOST}");
 
-    let response_text = ureq::get(HOST)
-        .header(
-            "User-Agent",
-            "wr-notifier (+https://github.com/y21/wrnotifier)",
-        )
+    let response_text = agent
+        .get(HOST)
         .call()
         .context("failed to fetch TT data from server")?
         .body_mut()
@@ -79,8 +78,16 @@ fn process() -> anyhow::Result<()> {
 fn main() -> anyhow::Result<()> {
     tracing_subscriber::fmt::init();
 
+    let agent = Agent::new_with_config(
+        Config::builder()
+            .http_status_as_error(true)
+            .user_agent("wr-notifier (+https://github.com/y21/wrnotifier)")
+            .timeout_global(Some(Duration::from_secs(60)))
+            .build(),
+    );
+
     loop {
-        if let Err(err) = process() {
+        if let Err(err) = process(&agent) {
             error!("an error occurred: {err:?}");
         }
 
